@@ -1,0 +1,258 @@
+ Group 3 AD Project Proposal
+
+
+MoodyClues
+
+Your pocket journal and mood advisor
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Team 3: Yao Zhixiang Dion, Hiroyo Kawai, Gao Sheng Yi, Ma Li, Thina Dhyalini D/O Rajendran
+
+ 
+
+1.	Table of Contents
+
+1. Table of Contents	2
+2. Problem Statement	3
+3. User Stories	3
+3.1 Minimum Viable Product	7
+4. Use Case Diagram	8
+5. Development Stack	9
+6. Appendix	10
+ 
+2.	Problem Statement
+
+There is a prevalence and rising trend in poor mental health in Singaporeans, with almost 1 in 3 people between 15 and 35 years of age reporting “severe or extremely severe symptoms of depression, anxiety and/or stress.” Research on journaling has found that it can help manage mental health symptoms. But what if there was an app that can make journaling a little more interactive, help people figure out their emotions, and be a tool for mental health professionals to have a connection with their clients?
+
+3.	User Stories
+
+User: Public user
+
+No.	As a journal user, …	Platform	Technology
+1	I can log how I feel at the start, middle, and end of the day (Very Good, Good, Neutral, Bad, Very Bad), so that I can track how I’m doing each day.
+
+每天三次记录情绪（非常好、好、中等、差、很差）
+	Mobile + Web	Frontend:
+Mobile - Android
+
+Web - ReactJS
+ 
+Backend:
+Spring Boot
+2	I can log certain lifestyle activities for the day (How many hours of sleep did I get? How much water did I drink? Did I OT today? etc.), so that I can see if there is correlation with my mood.
+
+记录生活习惯（睡眠、水、加班等）
+	Mobile + Web	Frontend:
+Mobile - Android
+
+Web - ReactJS
+ 
+Backend:
+Spring Boot
+3	I can write and submit text journal entries for each day, so that I can express my feelings and log events of the day.
+
+写每日文字日记
+	Mobile + Web	Frontend:
+Mobile - Android Native
+
+Web - ReactJS
+ 
+Backend:
+Spring Boot
+4	I can have my journal entry be analysed to predict what emotions I was feeling on the day.
+
+使用 ML 分析日记内容预测情绪
+	Mobile + Web + Machine Learning (Sentiment Analysis GoEmotions dataset (created by Google))	Frontend:
+Mobile - Android
+
+Web - ReactJS
+ 
+Backend:
+Spring Boot
+
+ML:
+HuggingFace API
+5	I can have my lifestyle activities be analysed to predict my mood for the next day (Requires 30 logs before feature is available) 
+根据生活习惯预测次日情绪（需30日志）	Mobile + Web + Machine Learning (Logistic Regression)	Frontend:
+Mobile - Android
+
+Web - ReactJS
+ 
+Backend:
+Spring Boot
+
+ML: 
+Python + Flask
+6	I can view a motivational quote based on my predicted emotions, that would lift my spirits.
+ 查看与情绪相关的激励语录	Mobile + Web	Frontend:
+Mobile - Android
+
+Web - ReactJS
+ 
+Backend:
+Spring Boot
+7	I can view all my past journal, mood, and analysis entries. 
+查看历史日记、情绪、分析	Web	Frontend:
+ReactJS
+ 
+Backend:
+Spring Boot
+8	I can view a dashboard chart of my mood over time, to see trends. [Extended app]
+
+查看情绪变化趋势图（用户/情绪）
+	Web	React, Material UI, Nivo Charts, Formik, Yup, FullCalendar, and Data Grid
+9	I can view a dashboard chart of my predicted emotions over time, to see trends. [Extended app]
+查看情绪变化趋势图（用户/情绪）	Web	React, Material UI, Nivo Charts, Formik, Yup, FullCalendar, and Data Grid
+10	I can export my mood reports / charts, so that I can save them, or print them.
+导出图表报告为 PDF	Web	React-pdf
+11	I can accept or reject view requests from Counsellor users, so that I can link up safely with my mental health professional.
+接受/拒绝心理医生查看请求	Web + Mobile	Frontend:
+Mobile - Android
+
+Web - ReactJS
+ 
+Backend:
+Spring Boot
+
+User: Therapist / Counsellor
+
+No.	As a Therapist or Counsellor, …	Platform	Technology
+1	I can send access request to my client / patient, for their approval.
+向用户发出查看请求	Web	Frontend:
+Web - ReactJS
+ 
+Backend:
+Spring Boot
+2	I can view all entries and mood + emotion trends of all my clients who accepted view request
+查看已授权用户所有情绪、日记、活动等记录	Web	Frontend:
+Mobile - Android
+
+Web - ReactJS
+ 
+Backend:
+Spring Boot
+3	I can receive automatic email notifications based on if users emotions trend a certain way over a fixed period. [Extended app]
+根据趋势接收邮件提醒（扩展）	Web	Frontend:
+Mobile - Android
+
+Web - ReactJS
+ 
+Backend:
+Spring Boot
+4	I can view dashboard chart of my individual clients’ mood (user submitted, 1-5 scale) over time [Extended app]
+	Web	React, Material UI, Nivo Charts, Formik, Yup, FullCalendar, and Data Grid
+5	I can view dashboard chart of my individual clients’ emotions (predicted by ML microservice) over time [Extended app]
+看到每位用户的情绪趋势图（用户打分 vs. ML预测	Web	React, Material UI, Nivo Charts, Formik, Yup, FullCalendar, and Data Grid
+
+User: Admin / ModeratorA
+
+No.	As an Administrator, …	Platform	Technology
+1	I can do user account management by being able to Read / Update / Delete all user accounts.
+管理用户账户（读取/更新/删除）	Web	Frontend:
+Web - ReactJS
+ 
+Backend:
+Spring Boot
+2	I can only Read or Delete user entries.
+阅读或删除用户日记	Web	Frontend:
+Mobile - Android
+
+Web - ReactJS
+ 
+Backend:
+Spring Boot
+3	I can export all users profile information (Just user info, not their journal entries or emotions).
+导出用户档案（不含日记内容	Web	React-pdf
+
+3.1 Minimum Viable Product
+Journal User: 
+1.	Log mood
+2.	Log activities
+3.	Submit journal entry
+4.	Get emotion predictions
+5.	View all previous mood, activity, journal, and emotions
+
+Therapist:
+1.	Send access request to clients
+2.	View all approved clients’ mood, activity, journal entries, and emotions
+
+Admin:
+1.	RUD all user accounts
+2.	R and D user entries
+3.	Export all user profiles (user account info only)
+4.	Use Case Diagram
+  
+5.	Development Stack
+
+Frontend: 
+Mobile: Android
+Web: ReactJS (Start with prototype, fallback plan is Thymeleaf)
+
+Backend:
+Spring Boot
+
+Database:
+MySQL
+
+Machine Learning:
+Python Flask
+
+Deployment:
+DigitalOcean
+
+CICD:
+Github
+Docker
+
+
+ 
+6.	Appendix
+
+Problem statement sources:
+
+https://www.imh.com.sg/Newsroom/News-Releases/Documents/NYMHS_Press%20Release_FINAL19Sep2024.pdf
+
+https://www.channelnewsasia.com/singapore/poor-mental-health-young-adults-seek-help-moh-survey-3802531
+
+Efficacy of journaling in the management of mental illness: a systematic review and meta-analysis
+
+
+编号	功能说明
+1	记录每天三次情绪（非常好、好、中等、差、很差）
+2	记录生活习惯（睡眠、水、加班等）
+3	写文字日记
+4	提交日记，使用机器学习模型预测当天情绪
+5	用生活习惯预测明天的情绪（需要积累30天日志）
+6	显示激励语录（根据预测情绪推荐）
+11	接受或拒绝心理医生查看权限请求
+No.	Feature Description
+1	Log mood three times a day (Very Good, Good, Neutral, Bad, Very Bad)
+2	Record lifestyle activities (e.g., hours of sleep, water intake, overwork, etc.)
+3	Write daily text journal entries
+4	Submit journal entries and receive emotion predictions using ML
+5	Predict next day's mood based on lifestyle logs (requires 30 logs)
+6	View motivational quotes based on predicted emotions
+11	Accept or reject view requests from therapists/counsellors
+编号	功能说明
+2	查看所有获授权用户的日记、情绪趋势等内容（需支持 Android）
+3	自动情绪异常趋势邮件提醒（这功能虽然系统处理为主，但可能会通过手机查看结果）
+No.	Feature Description
+2	View journal entries, mood, and emotional trends of approved clients (Android support included)
+3	Receive automated email alerts when user emotions trend negatively over a fixed period (mainly backend, but may be monitored via mobile)
+
