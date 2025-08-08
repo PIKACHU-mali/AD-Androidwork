@@ -15,6 +15,9 @@ object ApiClient {
     // 云端服务器地址
     private const val BASE_URL = "http://122.248.243.60:8080/"
 
+    // ML模型API的基础URL
+    private const val ML_MODEL_BASE_URL = "http://47.129.220.22:5000/"
+
     // 用户认证信息
     private var userCredentials: String? = null
 
@@ -88,8 +91,27 @@ object ApiClient {
         .addConverterFactory(GsonConverterFactory.create())
         .build()
     
+    // ML模型API专用的日志拦截器
+    private val mlModelLoggingInterceptor = HttpLoggingInterceptor().apply {
+        level = HttpLoggingInterceptor.Level.BODY
+    }
+
+    // ML模型API的Retrofit实例（不需要认证）
+    private val mlModelRetrofit = Retrofit.Builder()
+        .baseUrl(ML_MODEL_BASE_URL)
+        .client(OkHttpClient.Builder()
+            .addInterceptor(mlModelLoggingInterceptor)
+            .connectTimeout(60, TimeUnit.SECONDS)  // 增加超时时间
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(true)        // 启用重试
+            .build())
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+
     val userApiService: UserApiService = retrofit.create(UserApiService::class.java)
     val counsellorApiService: CounsellorApiService = retrofit.create(CounsellorApiService::class.java)
     val journalApiService: JournalApiService = retrofit.create(JournalApiService::class.java)
     val habitsApiService: HabitsApiService = retrofit.create(HabitsApiService::class.java)
+    val mlModelApiService: MLModelApiService = mlModelRetrofit.create(MLModelApiService::class.java)
 }

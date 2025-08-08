@@ -82,6 +82,10 @@ class LifestyleViewModel : ViewModel() {
                 val response = ApiClient.habitsApiService.submitHabitsEntry(habitsRequest)
 
                 if (response.isSuccessful) {
+                    // 读取响应体内容
+                    val responseText = response.body()?.string() ?: "Success"
+                    println("Habits backend response: $responseText")
+
                     // 添加到本地列表
                     saveLifestyleEntryLocal(sleepHours, waterLitres, workHours)
                     submitSuccess.value = true

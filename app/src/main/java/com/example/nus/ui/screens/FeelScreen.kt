@@ -40,14 +40,20 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.nus.model.FeelType
 import com.example.nus.viewmodel.FeelViewModel
+import com.example.nus.viewmodel.MoodViewModel
+import androidx.compose.runtime.getValue
 import java.time.LocalDate
 
 @Composable
 fun FeelScreen(
     viewModel: FeelViewModel,
+    moodViewModel: MoodViewModel, // 添加MoodViewModel参数
     onNavigateToHome: () -> Unit = {}
 ) {
     var selectedFeel by remember { mutableStateOf<FeelType?>(null) }
+
+    // 获取ML模型预测的情感
+    val predictedEmotions by moodViewModel.predictedEmotions
     
     Column(
         modifier = Modifier
@@ -114,37 +120,70 @@ fun FeelScreen(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(bottom = 24.dp)
+                    modifier = Modifier.padding(bottom = 16.dp)
                 )
+
+                // 显示ML模型预测的情感
+                if (predictedEmotions.isNotEmpty()) {
+                    Text(
+                        text = "AI detected emotions:",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+
+                    // 显示预测的情感标签
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+                    ) {
+                        predictedEmotions.take(5).forEach { emotion ->
+                            Card(
+                                modifier = Modifier.padding(2.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                                ),
+                                shape = RoundedCornerShape(16.dp)
+                            ) {
+                                Text(
+                                    text = emotion.replaceFirstChar { it.uppercase() },
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                                )
+                            }
+                        }
+                    }
+                }
                 
                 // Feel selection buttons
+                val feelTypes = if (predictedEmotions.isNotEmpty()) {
+                    mapPredictedEmotionsToFeelTypes(predictedEmotions)
+                } else {
+                    listOf(FeelType.HAPPY, FeelType.EXCITED) // 默认选项
+                }
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(bottom = 32.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    FeelOption(
-                        feelType = FeelType.HAPPY,
-                        label = "Happy",
-                        emoji = "😊",
-                        isSelected = selectedFeel == FeelType.HAPPY,
-                        onSelect = { 
-                            selectedFeel = FeelType.HAPPY
-                            viewModel.addFeelEntry(FeelType.HAPPY)
-                        }
-                    )
-                    
-                    FeelOption(
-                        feelType = FeelType.EXCITED,
-                        label = "Excited",
-                        emoji = "🌙",
-                        isSelected = selectedFeel == FeelType.EXCITED,
-                        onSelect = { 
-                            selectedFeel = FeelType.EXCITED
-                            viewModel.addFeelEntry(FeelType.EXCITED)
-                        }
-                    )
+                    feelTypes.forEach { feelType ->
+                        FeelOption(
+                            feelType = feelType,
+                            label = feelType.name.lowercase().replaceFirstChar { it.uppercase() },
+                            emoji = getEmojiForFeelType(feelType),
+                            isSelected = selectedFeel == feelType,
+                            onSelect = {
+                                selectedFeel = feelType
+                                viewModel.addFeelEntry(feelType)
+                            }
+                        )
+                    }
                 }
                 
                 // Quote section
@@ -268,5 +307,40 @@ fun FeelOption(
             fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
             color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
         )
+    }
+}
+
+// 辅助函数：将ML模型预测的情感映射到FeelType
+private fun mapPredictedEmotionsToFeelTypes(emotions: List<String>): List<FeelType> {
+    val feelTypeMap = mapOf(
+        "happy" to FeelType.HAPPY,
+        "joy" to FeelType.HAPPY,
+        "excited" to FeelType.EXCITED,
+        "excitement" to FeelType.EXCITED,
+        "sad" to FeelType.SAD,
+        "sadness" to FeelType.SAD,
+        "anxious" to FeelType.ANXIOUS,
+        "anxiety" to FeelType.ANXIOUS,
+        "worry" to FeelType.ANXIOUS,
+        "neutral" to FeelType.NEUTRAL,
+        "calm" to FeelType.NEUTRAL,
+        "peaceful" to FeelType.NEUTRAL
+    )
+
+    return emotions.mapNotNull { emotion ->
+        feelTypeMap[emotion.lowercase()]
+    }.distinct().take(5).ifEmpty {
+        listOf(FeelType.HAPPY, FeelType.EXCITED) // 默认显示选项
+    }
+}
+
+// 辅助函数：为FeelType获取对应的emoji
+private fun getEmojiForFeelType(feelType: FeelType): String {
+    return when (feelType) {
+        FeelType.HAPPY -> "😊"
+        FeelType.EXCITED -> "🎉"
+        FeelType.SAD -> "😢"
+        FeelType.ANXIOUS -> "😰"
+        FeelType.NEUTRAL -> "😐"
     }
 }

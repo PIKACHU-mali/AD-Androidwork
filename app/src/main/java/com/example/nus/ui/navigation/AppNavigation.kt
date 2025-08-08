@@ -252,6 +252,7 @@ fun AppNavigation() {
             composable(Screen.Feel.route) { // 这里是导航回主页的方式
                 FeelScreen(
                     viewModel = feelViewModel,
+                    moodViewModel = moodViewModel, // 传递MoodViewModel
                     onNavigateToHome = {
                         navController.navigate(Screen.Home.route) {
                             popUpTo(navController.graph.findStartDestination().id) {

@@ -58,10 +58,12 @@ fun MoodScreen(
     var journalContent by remember { mutableStateOf("") }
     var selectedMood by remember { mutableStateOf<MoodType?>(null) }
 
-    // 设置用户ID
+    // 设置用户ID并测试ML模型连接
     LaunchedEffect(userId) {
         if (userId.isNotEmpty()) {
             viewModel.setUserId(userId)
+            // 测试ML模型连接
+            viewModel.testMLModelConnection()
         }
     }
 
@@ -202,11 +204,10 @@ fun MoodScreen(
                 Button(
                     onClick = {
                         selectedMood?.let { mood ->
-                            viewModel.submitJournalEntry(
+                            viewModel.submitJournalEntryWithMLPrediction(
                                 mood = mood,
                                 entryTitle = journalTitle,
                                 entryText = journalContent,
-                                emotions = emptyList(), // 可以后续添加情感选择功能
                                 onSuccess = {
                                     // 清空表单
                                     journalTitle = ""

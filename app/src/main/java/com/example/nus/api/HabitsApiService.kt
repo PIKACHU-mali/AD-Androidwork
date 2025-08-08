@@ -3,6 +3,7 @@ package com.example.nus.api
 import com.example.nus.model.HabitsEntryRequest
 import com.example.nus.model.HabitsEntryResponse
 import com.example.nus.model.HabitsEntryUpdateRequest
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -14,7 +15,7 @@ import retrofit2.http.Query
 interface HabitsApiService {
     
     @POST("api/habits/submit")
-    suspend fun submitHabitsEntry(@Body habitsEntryRequest: HabitsEntryRequest): Response<String>
+    suspend fun submitHabitsEntry(@Body habitsEntryRequest: HabitsEntryRequest): Response<ResponseBody>
     
     @GET("api/habits/all")
     suspend fun getAllHabitsEntries(@Query("userId") userId: String): Response<List<HabitsEntryResponse>>

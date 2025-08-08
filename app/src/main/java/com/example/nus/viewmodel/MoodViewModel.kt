@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nus.api.ApiClient
 import com.example.nus.model.JournalEntryRequest
+import com.example.nus.model.MLModelRequest
 import com.example.nus.model.MoodEntry
 import com.example.nus.model.MoodType
 import com.example.nus.model.TimeOfDay
@@ -23,6 +24,12 @@ class MoodViewModel : ViewModel() {
 
     // 当前用户ID（从登录响应获取）
     var currentUserId: String = ""
+
+    // 存储ML模型返回的情感
+    val predictedEmotions = mutableStateOf<List<String>>(emptyList())
+
+    // ML模型是否可用
+    val isMLModelAvailable = mutableStateOf(true)
     
     // 提交日记条目到后端
     fun submitJournalEntry(
@@ -77,6 +84,146 @@ class MoodViewModel : ViewModel() {
                 onError(errorMessage)
             } finally {
                 isLoading.value = false
+            }
+        }
+    }
+
+    // 新的提交方法，先调用ML模型，再调用Spring Boot
+    fun submitJournalEntryWithMLPrediction(
+        mood: MoodType,
+        entryTitle: String,
+        entryText: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        if (currentUserId.isEmpty()) {
+            onError("User not logged in")
+            return
+        }
+
+        if (entryTitle.isBlank()) {
+            onError("Please enter a title for your journal entry")
+            return
+        }
+
+        if (entryText.isBlank()) {
+            onError("Please enter some content for emotion analysis")
+            return
+        }
+
+        isLoading.value = true
+        error.value = null
+        submitSuccess.value = false
+
+        viewModelScope.launch {
+            try {
+                // 第一步：尝试调用ML模型API进行情感分析
+                println("Calling ML model for emotion prediction...")
+                val mlRequest = MLModelRequest(text = entryText)
+
+                var emotions: List<String> = emptyList()
+                var mlModelSuccess = false
+
+                try {
+                    val mlResponse = ApiClient.mlModelApiService.predictEmotions(mlRequest)
+
+                    if (mlResponse.isSuccessful) {
+                        val responseEmotions = mlResponse.body()?.emotions ?: emptyList()
+                        emotions = if (responseEmotions.isNotEmpty()) {
+                            // 确保至少有2个emotions，如果只有1个则重复第一个
+                            if (responseEmotions.size >= 2) responseEmotions else listOf(responseEmotions[0], responseEmotions[0])
+                        } else {
+                            listOf("neutral", "neutral")
+                        }
+                        predictedEmotions.value = emotions
+                        mlModelSuccess = true
+                        println("ML model predicted emotions: $emotions")
+                    } else {
+                        println("ML model API error: ${mlResponse.code()} - ${mlResponse.message()}")
+                        // 打印响应体以便调试
+                        val errorBody = mlResponse.errorBody()?.string()
+                        println("ML model error response body: $errorBody")
+                        // 使用默认emotions而不是空列表，确保有2个元素
+                        emotions = listOf("neutral", "neutral")
+                        println("Using default emotions due to ML model API error: $emotions")
+                    }
+                } catch (mlException: Exception) {
+                    println("ML model network error: ${mlException.javaClass.simpleName}: ${mlException.message}")
+                    mlException.printStackTrace()
+                    isMLModelAvailable.value = false
+                    // 继续执行，使用默认的emotions列表而不是空列表，确保有2个元素
+                    emotions = listOf("neutral", "neutral")
+                    println("Using default emotions due to ML model failure: $emotions")
+                }
+
+                // 第二步：调用Spring Boot后端提交日记（无论ML模型是否成功）
+                // 确保emotions列表永远不为空且至少有2个元素，避免418错误
+                if (emotions.isEmpty()) {
+                    emotions = listOf("neutral", "neutral")
+                    println("Fallback: Using default emotions to prevent 418 error: $emotions")
+                } else if (emotions.size == 1) {
+                    emotions = listOf(emotions[0], emotions[0])
+                    println("Ensuring 2 emotions by duplicating: $emotions")
+                }
+
+                val journalRequest = JournalEntryRequest(
+                    userId = currentUserId,
+                    mood = mood.value,
+                    entryTitle = entryTitle,
+                    entryText = entryText,
+                    emotions = emotions
+                )
+
+                println("Submitting journal entry to backend with ${emotions.size} emotions...")
+                val backendResponse = ApiClient.journalApiService.submitJournalEntry(journalRequest)
+
+                if (backendResponse.isSuccessful) {
+                    // 读取响应体内容
+                    val responseText = backendResponse.body()?.string() ?: "Success"
+                    println("Backend response: $responseText")
+
+                    // 添加到本地列表
+                    addMoodEntryLocal(mood, TimeOfDay.MORNING, entryTitle, entryText, emotions)
+                    submitSuccess.value = true
+
+                    if (!mlModelSuccess) {
+                        // 如果ML模型失败，设置默认情感用于显示
+                        predictedEmotions.value = listOf("neutral", "neutral")
+                    }
+
+                    onSuccess()
+                    println("Journal entry submitted successfully with emotions: $emotions")
+                } else {
+                    val errorMessage = "Failed to submit to backend: ${backendResponse.code()} - ${backendResponse.message()}"
+                    println("Backend error: $errorMessage")
+                    onError(errorMessage)
+                }
+            } catch (e: Exception) {
+                val errorMessage = "Network error: ${e.message}"
+                println("Exception: $errorMessage")
+                onError(errorMessage)
+            } finally {
+                isLoading.value = false
+            }
+        }
+    }
+
+    // 测试ML模型连接的方法
+    fun testMLModelConnection() {
+        viewModelScope.launch {
+            try {
+                println("Testing ML model connection...")
+                val testRequest = MLModelRequest(text = "test")
+                val response = ApiClient.mlModelApiService.predictEmotions(testRequest)
+
+                if (response.isSuccessful) {
+                    println("ML model connection successful: ${response.body()}")
+                } else {
+                    println("ML model connection failed: ${response.code()} - ${response.message()}")
+                }
+            } catch (e: Exception) {
+                println("ML model connection error: ${e.message}")
+                e.printStackTrace()
             }
         }
     }
