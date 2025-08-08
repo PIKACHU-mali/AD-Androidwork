@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.nus.R
 import com.example.nus.viewmodel.LoginViewModel
+import com.example.nus.viewmodel.UserType
 
 @Composable
 fun LoginScreen(
@@ -147,7 +148,82 @@ fun LoginScreen(
                             }
                         }
                     )
-                    
+
+                    // User Type Selector
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "Login as:",
+                            fontSize = 14.sp,
+                            color = Color.Gray,
+                            modifier = Modifier.padding(end = 12.dp, top = 8.dp)
+                        )
+
+                        Row(
+                            modifier = Modifier
+                                .background(
+                                    Color.Gray.copy(alpha = 0.1f),
+                                    RoundedCornerShape(8.dp)
+                                )
+                                .padding(4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            // User Button
+                            Button(
+                                onClick = {
+                                    if (viewModel.userType.value != UserType.USER) {
+                                        viewModel.userType.value = UserType.USER
+                                        viewModel.clearError()
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (viewModel.userType.value == UserType.USER)
+                                        Color.Black else Color.Transparent,
+                                    contentColor = if (viewModel.userType.value == UserType.USER)
+                                        Color.White else Color.Gray
+                                ),
+                                shape = RoundedCornerShape(6.dp),
+                                modifier = Modifier.height(36.dp),
+                                elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
+                            ) {
+                                Text(
+                                    text = "User",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+
+                            // Counsellor Button
+                            Button(
+                                onClick = {
+                                    if (viewModel.userType.value != UserType.COUNSELLOR) {
+                                        viewModel.userType.value = UserType.COUNSELLOR
+                                        viewModel.clearError()
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (viewModel.userType.value == UserType.COUNSELLOR)
+                                        Color.Black else Color.Transparent,
+                                    contentColor = if (viewModel.userType.value == UserType.COUNSELLOR)
+                                        Color.White else Color.Gray
+                                ),
+                                shape = RoundedCornerShape(6.dp),
+                                modifier = Modifier.height(36.dp),
+                                elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
+                            ) {
+                                Text(
+                                    text = "Counsellor",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+                    }
+
                     // Error Message
                     viewModel.loginError.value?.let { error ->
                         Text(
@@ -168,11 +244,72 @@ fun LoginScreen(
                     )
                     
                     // Login and Sign Up Buttons
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        // Login Button
+                    if (viewModel.userType.value == UserType.USER) {
+                        // For Users: Show both Login and Sign Up buttons
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            // Login Button
+                            Button(
+                                onClick = {
+                                    viewModel.login(
+                                        onSuccess = { response ->
+                                            onLoginSuccess(
+                                                response.userId,
+                                                response.showEmotion,
+                                                viewModel.email.value,
+                                                viewModel.password.value
+                                            )
+                                        },
+                                        onError = { error ->
+                                            viewModel.loginError.value = error
+                                        }
+                                    )
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color.Black
+                                ),
+                                shape = RoundedCornerShape(8.dp),
+                                enabled = !viewModel.isLoading.value
+                            ) {
+                                if (viewModel.isLoading.value) {
+                                    CircularProgressIndicator(
+                                        color = Color.White,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                } else {
+                                    Text(
+                                        text = "Login Now",
+                                        color = Color.White,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                            }
+
+                            // Sign Up Button
+                            OutlinedButton(
+                                onClick = onSignUpClick,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(48.dp),
+                                shape = RoundedCornerShape(8.dp),
+                                enabled = !viewModel.isLoading.value
+                            ) {
+                                Text(
+                                    text = "Sign Up Now",
+                                    color = Color.Black,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+                    } else {
+                        // For Counsellors: Show only Login button (full width)
                         Button(
                             onClick = {
                                 viewModel.login(
@@ -190,7 +327,7 @@ fun LoginScreen(
                                 )
                             },
                             modifier = Modifier
-                                .weight(1f)
+                                .fillMaxWidth()
                                 .height(48.dp),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = Color.Black
@@ -205,68 +342,54 @@ fun LoginScreen(
                                 )
                             } else {
                                 Text(
-                                    text = "Login Now",
+                                    text = "Login as Counsellor",
                                     color = Color.White,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Medium
                                 )
                             }
                         }
-                        
-                        // Sign Up Button
+                    }
+
+                    // Google Sign In - Only show for Users
+                    if (viewModel.userType.value == UserType.USER) {
+                        // Or continue with
+                        Text(
+                            text = "or continue with",
+                            fontSize = 14.sp,
+                            color = Color.Gray,
+                            modifier = Modifier.padding(vertical = 24.dp)
+                        )
+
+                        // Google Sign In Button
                         OutlinedButton(
-                            onClick = onSignUpClick,
+                            onClick = { /* TODO: Implement Google Sign In */ },
                             modifier = Modifier
-                                .weight(1f)
+                                .fillMaxWidth()
                                 .height(48.dp),
                             shape = RoundedCornerShape(8.dp),
-                            enabled = !viewModel.isLoading.value
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = Color(0xFFF5F5F5)
+                            )
                         ) {
-                            Text(
-                                text = "Sign Up Now",
-                                color = Color.Black,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                    }
-                    
-                    // Or continue with
-                    Text(
-                        text = "or continue with",
-                        fontSize = 14.sp,
-                        color = Color.Gray,
-                        modifier = Modifier.padding(vertical = 24.dp)
-                    )
-                    
-                    // Google Sign In Button
-                    OutlinedButton(
-                        onClick = { /* TODO: Implement Google Sign In */ },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = Color(0xFFF5F5F5)
-                        )
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
-                            // Google Icon (you'll need to add the Google icon to your drawable resources)
-                            Text(
-                                text = "G",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF4285F4)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = "Google",
-                                fontSize = 16.sp,
-                                color = Color.Black
-                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                // Google Icon (you'll need to add the Google icon to your drawable resources)
+                                Text(
+                                    text = "G",
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF4285F4)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Google",
+                                    fontSize = 16.sp,
+                                    color = Color.Black
+                                )
+                            }
                         }
                     }
                 }

@@ -8,14 +8,19 @@ import com.example.nus.model.LoginRequest
 import com.example.nus.model.LoginResponse
 import kotlinx.coroutines.launch
 
+enum class UserType {
+    USER, COUNSELLOR
+}
+
 class LoginViewModel : ViewModel() {
-    
+
     val email = mutableStateOf("")
     val password = mutableStateOf("")
     val isLoading = mutableStateOf(false)
     val loginError = mutableStateOf<String?>(null)
     val loginSuccess = mutableStateOf(false)
     val loginResponse = mutableStateOf<LoginResponse?>(null)
+    val userType = mutableStateOf(UserType.USER)
     
     fun login(onSuccess: (LoginResponse) -> Unit, onError: (String) -> Unit) {
         if (email.value.isBlank() || password.value.isBlank()) {
@@ -33,8 +38,15 @@ class LoginViewModel : ViewModel() {
                     password = password.value
                 )
 
-                println("Attempting login with email: ${loginRequest.email}")
-                val response = ApiClient.userApiService.login(loginRequest)
+                val userTypeText = if (userType.value == UserType.USER) "user" else "counsellor"
+                println("Attempting $userTypeText login with email: ${loginRequest.email}")
+
+                val response = if (userType.value == UserType.USER) {
+                    ApiClient.userApiService.login(loginRequest)
+                } else {
+                    ApiClient.counsellorApiService.login(loginRequest)
+                }
+
                 println("Response received: Code=${response.code()}, Success=${response.isSuccessful}")
                 
                 if (response.isSuccessful) {
@@ -53,7 +65,7 @@ class LoginViewModel : ViewModel() {
                     val errorBody = response.errorBody()?.string()
                     val errorMessage = when (response.code()) {
                         401 -> errorBody ?: "Invalid email or password"
-                        404 -> "User not found"
+                        404 -> "${userTypeText.replaceFirstChar { it.uppercase() }} not found"
                         500 -> "Server error. Please try again later"
                         else -> "Login failed: ${response.code()} - ${response.message()}"
                     }
@@ -68,10 +80,16 @@ class LoginViewModel : ViewModel() {
         }
     }
     
+    fun toggleUserType() {
+        userType.value = if (userType.value == UserType.USER) UserType.COUNSELLOR else UserType.USER
+        // 清除之前的错误信息
+        loginError.value = null
+    }
+
     fun clearError() {
         loginError.value = null
     }
-    
+
     fun resetLoginState() {
         email.value = ""
         password.value = ""
@@ -79,5 +97,6 @@ class LoginViewModel : ViewModel() {
         loginSuccess.value = false
         loginResponse.value = null
         isLoading.value = false
+        userType.value = UserType.USER
     }
 }
