@@ -28,6 +28,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.nus.ui.screens.ClientsScreen
 import com.example.nus.ui.screens.CounsellorHomeScreen
 import com.example.nus.ui.screens.FeelScreen
 import com.example.nus.ui.screens.HomeScreen
@@ -46,6 +47,7 @@ sealed class Screen(val route: String, val title: String) {
     object Register : Screen("register", "Register")
     object Home : Screen("home", "Home")
     object CounsellorHome : Screen("counsellor_home", "Counsellor Home")
+    object Clients : Screen("clients", "Clients")
     object Mood : Screen("mood", "Mood")
     object Lifestyle : Screen("lifestyle", "Lifestyle")
     object Feel : Screen("feel", "Feel")
@@ -196,7 +198,7 @@ fun AppNavigation() {
             composable(Screen.CounsellorHome.route) {
                 CounsellorHomeScreen(
                     onClientsClick = {
-                        // TODO: Navigate to clients screen
+                        navController.navigate(Screen.Clients.route)
                     },
                     onInviteClick = {
                         // TODO: Navigate to invite screen
@@ -205,6 +207,30 @@ fun AppNavigation() {
                         navController.navigate(Screen.Login.route) {
                             popUpTo(Screen.CounsellorHome.route) { inclusive = true }
                         }
+                    }
+                )
+            }
+            composable(Screen.Clients.route) {
+                ClientsScreen(
+                    counsellorId = userSessionViewModel.userId.value,
+                    onHomeClick = {
+                        navController.navigate(Screen.CounsellorHome.route)
+                    },
+                    onInviteClick = {
+                        // TODO: Navigate to invite screen
+                    },
+                    onLogoutClick = {
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(Screen.Clients.route) { inclusive = true }
+                        }
+                    },
+                    onJournalClick = { client ->
+                        // TODO: Navigate to client's journal
+                        println("Navigate to journal for client: ${client.displayName}")
+                    },
+                    onDashboardClick = { client ->
+                        // TODO: Navigate to client's dashboard
+                        println("Navigate to dashboard for client: ${client.displayName}")
                     }
                 )
             }

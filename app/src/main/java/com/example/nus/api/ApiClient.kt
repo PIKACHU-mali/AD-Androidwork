@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit
 object ApiClient {
 
     // 云端服务器地址
-    private const val BASE_URL = "http://3.0.18.247:8080/"
+    private const val BASE_URL = "http://122.248.243.60:8080/"
 
     // 用户认证信息
     private var userCredentials: String? = null
