@@ -28,6 +28,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.nus.ui.screens.CounsellorHomeScreen
 import com.example.nus.ui.screens.FeelScreen
 import com.example.nus.ui.screens.HomeScreen
 import com.example.nus.ui.screens.LifestyleLoggedScreen
@@ -44,6 +45,7 @@ sealed class Screen(val route: String, val title: String) {
     object Login : Screen("login", "Login")
     object Register : Screen("register", "Register")
     object Home : Screen("home", "Home")
+    object CounsellorHome : Screen("counsellor_home", "Counsellor Home")
     object Mood : Screen("mood", "Mood")
     object Lifestyle : Screen("lifestyle", "Lifestyle")
     object Feel : Screen("feel", "Feel")
@@ -141,9 +143,14 @@ fun AppNavigation() {
         ) {
             composable(Screen.Login.route) {
                 LoginScreen(
-                    onLoginSuccess = { userId, showEmotion, email, password ->
+                    onLoginSuccess = { userId, showEmotion, email, password, userType ->
                         userSessionViewModel.setUserSession(userId, showEmotion, email, password)
-                        navController.navigate(Screen.Home.route) {
+                        val destination = if (userType == com.example.nus.viewmodel.UserType.COUNSELLOR) {
+                            Screen.CounsellorHome.route
+                        } else {
+                            Screen.Home.route
+                        }
+                        navController.navigate(destination) {
                             popUpTo(Screen.Login.route) { inclusive = true }
                         }
                     },
@@ -182,6 +189,21 @@ fun AppNavigation() {
                             }
                             launchSingleTop = true
                             restoreState = true
+                        }
+                    }
+                )
+            }
+            composable(Screen.CounsellorHome.route) {
+                CounsellorHomeScreen(
+                    onClientsClick = {
+                        // TODO: Navigate to clients screen
+                    },
+                    onInviteClick = {
+                        // TODO: Navigate to invite screen
+                    },
+                    onLogout = {
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(Screen.CounsellorHome.route) { inclusive = true }
                         }
                     }
                 )
