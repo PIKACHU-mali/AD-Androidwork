@@ -128,13 +128,7 @@ class MoodViewModel : ViewModel() {
                     val mlResponse = ApiClient.mlModelApiService.predictEmotions(mlRequest)
 
                     if (mlResponse.isSuccessful) {
-                        val responseEmotions = mlResponse.body()?.emotions ?: emptyList()
-                        emotions = if (responseEmotions.isNotEmpty()) {
-                            // 确保至少有2个emotions，如果只有1个则重复第一个
-                            if (responseEmotions.size >= 2) responseEmotions else listOf(responseEmotions[0], responseEmotions[0])
-                        } else {
-                            listOf("neutral", "neutral")
-                        }
+                        emotions = mlResponse.body()?.emotions ?: emptyList()
                         predictedEmotions.value = emotions
                         mlModelSuccess = true
                         println("ML model predicted emotions: $emotions")
@@ -143,28 +137,19 @@ class MoodViewModel : ViewModel() {
                         // 打印响应体以便调试
                         val errorBody = mlResponse.errorBody()?.string()
                         println("ML model error response body: $errorBody")
-                        // 使用默认emotions而不是空列表，确保有2个元素
-                        emotions = listOf("neutral", "neutral")
-                        println("Using default emotions due to ML model API error: $emotions")
+                        emotions = emptyList()
+                        println("Using empty emotions due to ML model API error")
                     }
                 } catch (mlException: Exception) {
                     println("ML model network error: ${mlException.javaClass.simpleName}: ${mlException.message}")
                     mlException.printStackTrace()
                     isMLModelAvailable.value = false
-                    // 继续执行，使用默认的emotions列表而不是空列表，确保有2个元素
-                    emotions = listOf("neutral", "neutral")
-                    println("Using default emotions due to ML model failure: $emotions")
+                    // 继续执行，使用空的emotions列表
+                    emotions = emptyList()
+                    println("Using empty emotions due to ML model failure")
                 }
 
                 // 第二步：调用Spring Boot后端提交日记（无论ML模型是否成功）
-                // 确保emotions列表永远不为空且至少有2个元素，避免418错误
-                if (emotions.isEmpty()) {
-                    emotions = listOf("neutral", "neutral")
-                    println("Fallback: Using default emotions to prevent 418 error: $emotions")
-                } else if (emotions.size == 1) {
-                    emotions = listOf(emotions[0], emotions[0])
-                    println("Ensuring 2 emotions by duplicating: $emotions")
-                }
 
                 val journalRequest = JournalEntryRequest(
                     userId = currentUserId,
@@ -174,7 +159,7 @@ class MoodViewModel : ViewModel() {
                     emotions = emotions
                 )
 
-                println("Submitting journal entry to backend with ${emotions.size} emotions...")
+                println("Submitting journal entry to backend...")
                 val backendResponse = ApiClient.journalApiService.submitJournalEntry(journalRequest)
 
                 if (backendResponse.isSuccessful) {
@@ -187,8 +172,8 @@ class MoodViewModel : ViewModel() {
                     submitSuccess.value = true
 
                     if (!mlModelSuccess) {
-                        // 如果ML模型失败，设置默认情感用于显示
-                        predictedEmotions.value = listOf("neutral", "neutral")
+                        // 如果ML模型失败，设置空情感用于显示
+                        predictedEmotions.value = emptyList()
                     }
 
                     onSuccess()
