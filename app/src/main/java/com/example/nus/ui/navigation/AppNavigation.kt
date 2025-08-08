@@ -218,9 +218,11 @@ fun AppNavigation() {
                 )
             }
             composable(Screen.Lifestyle.route) {
+                val currentUserId = userSessionViewModel.userId.value
+                println("AppNavigation: Navigating to LifestyleScreen with userId = '$currentUserId'")
                 LifestyleScreen(
                     viewModel = lifestyleViewModel,
-                    userId = userSessionViewModel.userId.value,
+                    userId = currentUserId,
                     onNavigateToLifestyleLogged = {
                         navController.navigate(Screen.LifestyleLogged.route)
                     }

@@ -20,6 +20,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Create
+import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -106,12 +108,12 @@ fun HomeScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Write card
+            // Mood card
             ActionCard(
-                title = "Write",
-                subtitle = "Write To Journal",
+                title = "Mood",
+                subtitle = "Write down your mood today",
                 description = "Record today",
-                icon = Icons.Default.Create,
+                icon = Icons.Default.Face,
                 backgroundColor = listOf(
                     Color(0xFFD84315), // Deep orange
                     Color(0xFFFF5722)  // Orange
@@ -120,12 +122,12 @@ fun HomeScreen(
                 onClick = onNavigateToMood
             )
             
-            // Read card
+            // Habit card
             ActionCard(
-                title = "Read",
-                subtitle = "Read Your Journal",
+                title = "Habit",
+                subtitle = "Record your Habits",
                 description = "Have a look at your past",
-                icon = Icons.AutoMirrored.Filled.MenuBook,
+                icon = Icons.Default.DateRange,
                 backgroundColor = listOf(
                     Color(0xFFFF8F00), // Amber
                     Color(0xFFFFC107)  // Yellow

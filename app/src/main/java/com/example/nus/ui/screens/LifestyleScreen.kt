@@ -48,8 +48,12 @@ fun LifestyleScreen(
 
     // 设置用户ID
     LaunchedEffect(userId) {
+        println("LifestyleScreen: Received userId = '$userId'")
         if (userId.isNotEmpty()) {
             viewModel.setUserId(userId)
+            println("LifestyleScreen: Set userId in viewModel = '$userId'")
+        } else {
+            println("LifestyleScreen: WARNING - userId is empty!")
         }
     }
 

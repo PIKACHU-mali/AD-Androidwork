@@ -213,6 +213,8 @@ class LifestyleViewModel : ViewModel() {
     }
 
     fun setUserId(userId: String) {
+        println("LifestyleViewModel: Setting userId from '$currentUserId' to '$userId'")
         currentUserId = userId
+        println("LifestyleViewModel: currentUserId is now '$currentUserId'")
     }
 } 
