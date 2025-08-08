@@ -3,6 +3,7 @@ package com.example.nus.api
 import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -11,17 +12,24 @@ import java.util.concurrent.TimeUnit
 
 object ApiClient {
 
-    // 可能的服务器地址列表
-    private val POSSIBLE_BASE_URLS = listOf(
-        "http://10.0.2.2:8080/",      // Android模拟器访问本地服务器
-        "http://192.168.1.100:8080/", // 替换为您的实际IP地址
-        "http://localhost:8080/",     // 直接localhost（可能不工作）
-    )
+    // 云端服务器地址
+    private const val BASE_URL = "http://3.0.18.247:8080/"
 
-    // 当前使用的BASE_URL - 请替换为您的实际IP地址
-    // 如果10.0.2.2不工作，请尝试您的实际IP地址，例如：
-    // private const val BASE_URL = "http://192.168.1.100:8080/"
-    private const val BASE_URL = "http://10.0.2.2:8080/"
+    // 用户认证信息
+    private var userCredentials: String? = null
+
+    // 设置用户认证信息
+    fun setUserCredentials(email: String, password: String) {
+        val credentials = "$email:$password"
+        userCredentials = android.util.Base64.encodeToString(credentials.toByteArray(), android.util.Base64.NO_WRAP)
+        println("Set user credentials for: $email")
+    }
+
+    // 清除用户认证信息
+    fun clearUserCredentials() {
+        userCredentials = null
+        println("Cleared user credentials")
+    }
     
     // Cookie管理器，用于维持session
     private val cookieJar = object : CookieJar {
@@ -39,11 +47,33 @@ object ApiClient {
         }
     }
 
+    // 认证拦截器
+    private val authInterceptor = Interceptor { chain ->
+        val originalRequest = chain.request()
+
+        // 如果是登录请求，不添加认证头
+        if (originalRequest.url.encodedPath.contains("/api/user/login") ||
+            originalRequest.url.encodedPath.contains("/api/user/register")) {
+            chain.proceed(originalRequest)
+        } else {
+            // 其他请求添加Basic Auth头
+            val newRequest = if (userCredentials != null) {
+                originalRequest.newBuilder()
+                    .addHeader("Authorization", "Basic $userCredentials")
+                    .build()
+            } else {
+                originalRequest
+            }
+            chain.proceed(newRequest)
+        }
+    }
+
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
     private val okHttpClient = OkHttpClient.Builder()
+        .addInterceptor(authInterceptor)       // 添加认证拦截器
         .addInterceptor(loggingInterceptor)
         .cookieJar(cookieJar)  // 添加Cookie管理
         .connectTimeout(10, TimeUnit.SECONDS)  // 减少连接超时时间

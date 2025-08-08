@@ -25,16 +25,18 @@ public class JournalController {
 	
 	@PostMapping("/submit")
 	public ResponseEntity<?> submitJournalEntry(@RequestBody JournalEntryRequestDto request) {
-		
+
 		try {
 			entryService.submitEntry(request);
 			return new ResponseEntity<>(HttpStatus.OK);
 		} catch (Exception e) {
-			
+			System.err.println("Error submitting journal entry: " + e.getMessage());
+			e.printStackTrace();
+			return new ResponseEntity<>("Service implementation missing: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-		
+
 		return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT);
-		
+
 	}
 	
 	

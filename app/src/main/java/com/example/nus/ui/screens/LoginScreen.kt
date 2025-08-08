@@ -54,7 +54,7 @@ import com.example.nus.viewmodel.LoginViewModel
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: (userId: String, showEmotion: Boolean) -> Unit = { _, _ -> },
+    onLoginSuccess: (userId: String, showEmotion: Boolean, email: String, password: String) -> Unit = { _, _, _, _ -> },
     onSignUpClick: () -> Unit = {},
     viewModel: LoginViewModel = viewModel()
 ) {
@@ -177,7 +177,12 @@ fun LoginScreen(
                             onClick = {
                                 viewModel.login(
                                     onSuccess = { response ->
-                                        onLoginSuccess(response.userId, response.showEmotion)
+                                        onLoginSuccess(
+                                            response.userId,
+                                            response.showEmotion,
+                                            viewModel.email.value,
+                                            viewModel.password.value
+                                        )
                                     },
                                     onError = { error ->
                                         viewModel.loginError.value = error

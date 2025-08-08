@@ -41,6 +41,10 @@ class LoginViewModel : ViewModel() {
                     response.body()?.let { loginResponse ->
                         this@LoginViewModel.loginResponse.value = loginResponse
                         loginSuccess.value = true
+
+                        // 设置API客户端的认证信息
+                        ApiClient.setUserCredentials(email.value.trim(), password.value)
+
                         onSuccess(loginResponse)
                     } ?: run {
                         onError("Login failed: Empty response")

@@ -141,8 +141,8 @@ fun AppNavigation() {
         ) {
             composable(Screen.Login.route) {
                 LoginScreen(
-                    onLoginSuccess = { userId, showEmotion ->
-                        userSessionViewModel.setUserSession(userId, showEmotion)
+                    onLoginSuccess = { userId, showEmotion, email, password ->
+                        userSessionViewModel.setUserSession(userId, showEmotion, email, password)
                         navController.navigate(Screen.Home.route) {
                             popUpTo(Screen.Login.route) { inclusive = true }
                         }
