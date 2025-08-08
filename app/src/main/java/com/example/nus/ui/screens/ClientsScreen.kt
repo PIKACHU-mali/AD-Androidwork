@@ -5,13 +5,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,9 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -34,9 +34,8 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun ClientsScreen(
     counsellorId: String = "",
-    onHomeClick: () -> Unit = {},
+    onBackClick: () -> Unit = {},
     onInviteClick: () -> Unit = {},
-    onLogoutClick: () -> Unit = {},
     onJournalClick: (Client) -> Unit = {},
     onDashboardClick: (Client) -> Unit = {},
     viewModel: ClientsViewModel = viewModel()
@@ -44,119 +43,73 @@ fun ClientsScreen(
     val clients by viewModel.filteredClients.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
-    
+
     // Set counsellor ID when screen loads
     LaunchedEffect(counsellorId) {
         if (counsellorId.isNotEmpty()) {
             viewModel.setCounsellorId(counsellorId)
         }
     }
-    
-    Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF5F5F5))
-    ) {
-        // Left Sidebar
-        LeftSidebar(
-            onHomeClick = onHomeClick,
-            onInviteClick = onInviteClick,
-            onLogoutClick = onLogoutClick
-        )
-        
-        // Main Content
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "My Clients",
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onInviteClick) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Invite Client"
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
         Column(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-                .background(Color.White)
-                .padding(32.dp)
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
         ) {
-            // Header with title and invite button
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Your Linked Clients",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black
-                )
-                
-                Button(
-                    onClick = onInviteClick,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Black
-                    ),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        text = "Invite Client",
-                        color = Color.White,
-                        fontSize = 14.sp
-                    )
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
             // Search Bar
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = viewModel::updateSearchQuery,
                 placeholder = {
-                    Text(
-                        text = "Search...",
-                        color = Color.Gray
-                    )
+                    Text("Search clients...")
                 },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Search,
-                        contentDescription = "Search",
-                        tint = Color.Gray
+                        contentDescription = "Search"
                     )
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp),
-                shape = RoundedCornerShape(8.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Gray,
-                    unfocusedBorderColor = Color.LightGray
-                )
+                    .padding(bottom = 16.dp),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true
             )
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            // Clients Table Header
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Text(
-                    text = "Date linked",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.Gray,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = "Name",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.Gray,
-                    modifier = Modifier.weight(1f)
-                )
-                Spacer(modifier = Modifier.width(200.dp)) // Space for action buttons
-            }
-            
-            Divider(color = Color.LightGray, thickness = 1.dp)
-            
+
             // Clients List
             if (isLoading) {
                 Box(
@@ -165,13 +118,14 @@ fun ClientsScreen(
                 ) {
                     CircularProgressIndicator()
                 }
+            } else if (clients.isEmpty()) {
+                EmptyClientsState(onInviteClick = onInviteClick)
             } else {
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(1.dp)
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(clients) { client ->
-                        ClientRow(
+                        ClientCard(
                             client = client,
                             onJournalClick = { onJournalClick(client) },
                             onDashboardClick = { onDashboardClick(client) }
@@ -184,166 +138,146 @@ fun ClientsScreen(
 }
 
 @Composable
-private fun LeftSidebar(
-    onHomeClick: () -> Unit,
-    onInviteClick: () -> Unit,
-    onLogoutClick: () -> Unit
+private fun EmptyClientsState(
+    onInviteClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
-            .width(200.dp)
-            .fillMaxHeight()
-            .background(Color(0xFFF8F9FA))
-            .padding(16.dp)
-    ) {
-        // MoodyClues Title
-        Text(
-            text = "MoodyClues",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black,
-            modifier = Modifier.padding(bottom = 24.dp)
-        )
-        
-        // Quick Start Section
-        Text(
-            text = "Quick Start",
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color.Gray,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-        
-        // Navigation Items
-        SidebarItem(
-            icon = Icons.Default.Home,
-            text = "Home",
-            onClick = onHomeClick
-        )
-        
-        SidebarItem(
-            icon = Icons.Default.Group,
-            text = "Clients",
-            onClick = { /* Current screen */ },
-            isSelected = true
-        )
-        
-        SidebarItem(
-            icon = Icons.Default.PersonAdd,
-            text = "Pending Invites",
-            onClick = onInviteClick
-        )
-        
-        Spacer(modifier = Modifier.weight(1f))
-        
-        // Bottom Items
-        SidebarItem(
-            icon = Icons.Default.Person,
-            text = "Edit Profile",
-            onClick = { /* TODO */ }
-        )
-        
-        SidebarItem(
-            icon = Icons.Default.Logout,
-            text = "Logout",
-            onClick = onLogoutClick
-        )
-    }
-}
-
-@Composable
-private fun SidebarItem(
-    icon: ImageVector,
-    text: String,
-    onClick: () -> Unit,
-    isSelected: Boolean = false
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .background(if (isSelected) Color(0xFFE3F2FD) else Color.Transparent)
-            .clickable { onClick() }
-            .padding(horizontal = 12.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
         Icon(
-            imageVector = icon,
-            contentDescription = text,
-            tint = if (isSelected) Color(0xFF1976D2) else Color.Gray,
-            modifier = Modifier.size(20.dp)
+            imageVector = Icons.Default.Person,
+            contentDescription = null,
+            modifier = Modifier.size(80.dp),
+            tint = MaterialTheme.colorScheme.outline
         )
-        
-        Spacer(modifier = Modifier.width(12.dp))
-        
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         Text(
-            text = text,
-            fontSize = 14.sp,
-            color = if (isSelected) Color(0xFF1976D2) else Color.Gray
+            text = "No Clients Yet",
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.onSurface
         )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "Invite your first client to get started",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.outline
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = onInviteClick,
+            modifier = Modifier.fillMaxWidth(0.6f)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Add,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Invite Client")
+        }
     }
 }
 
 @Composable
-private fun ClientRow(
+private fun ClientCard(
     client: Client,
     onJournalClick: () -> Unit,
     onDashboardClick: () -> Unit
 ) {
-    Row(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
-            .padding(horizontal = 16.dp, vertical = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .clickable { /* TODO: Navigate to client detail */ },
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
-        // Date linked
-        Text(
-            text = client.linkedDate.format(DateTimeFormatter.ofPattern("d/M/yyyy")),
-            fontSize = 14.sp,
-            color = Color.Gray,
-            modifier = Modifier.weight(1f)
-        )
-        
-        // Name
-        Text(
-            text = client.displayName,
-            fontSize = 14.sp,
-            color = Color.Black,
-            modifier = Modifier.weight(1f)
-        )
-        
-        // Action Buttons
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        Column(
+            modifier = Modifier.padding(16.dp)
         ) {
-            OutlinedButton(
-                onClick = onJournalClick,
-                shape = RoundedCornerShape(6.dp),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = Color.Gray
-                ),
-                modifier = Modifier.height(32.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Journal",
-                    fontSize = 12.sp
-                )
+                // Avatar
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = client.displayName.take(1).uppercase(),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                // Client Info
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = client.displayName,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Text(
+                        text = "Linked: ${client.linkedDate.format(DateTimeFormatter.ofPattern("MMM d, yyyy"))}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                }
             }
 
-            OutlinedButton(
-                onClick = onDashboardClick,
-                shape = RoundedCornerShape(6.dp),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = Color.Gray
-                ),
-                modifier = Modifier.height(32.dp)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Action Buttons
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = "Dashboard",
-                    fontSize = 12.sp
-                )
+                OutlinedButton(
+                    onClick = onJournalClick,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.MenuBook,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Journal")
+                }
+
+                OutlinedButton(
+                    onClick = onDashboardClick,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Dashboard,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Dashboard")
+                }
             }
         }
     }

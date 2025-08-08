@@ -213,16 +213,11 @@ fun AppNavigation() {
             composable(Screen.Clients.route) {
                 ClientsScreen(
                     counsellorId = userSessionViewModel.userId.value,
-                    onHomeClick = {
+                    onBackClick = {
                         navController.navigate(Screen.CounsellorHome.route)
                     },
                     onInviteClick = {
                         // TODO: Navigate to invite screen
-                    },
-                    onLogoutClick = {
-                        navController.navigate(Screen.Login.route) {
-                            popUpTo(Screen.Clients.route) { inclusive = true }
-                        }
                     },
                     onJournalClick = { client ->
                         // TODO: Navigate to client's journal
