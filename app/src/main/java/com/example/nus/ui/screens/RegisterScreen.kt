@@ -22,14 +22,25 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModel
 import com.example.nus.viewmodel.RegisterViewModel
 
 @Composable
 fun RegisterScreen(
     onRegisterSuccess: () -> Unit = {},
-    onBackToLogin: () -> Unit = {},
-    viewModel: RegisterViewModel = viewModel()
+    onBackToLogin: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val viewModel: RegisterViewModel = viewModel(
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return RegisterViewModel(context.applicationContext as android.app.Application) as T
+            }
+        }
+    )
     var passwordVisible by remember { mutableStateOf(false) }
     
     Column(

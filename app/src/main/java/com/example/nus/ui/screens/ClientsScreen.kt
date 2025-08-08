@@ -26,6 +26,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModel
 import com.example.nus.model.Client
 import com.example.nus.viewmodel.ClientsViewModel
 import java.time.format.DateTimeFormatter
@@ -37,9 +40,17 @@ fun ClientsScreen(
     onBackClick: () -> Unit = {},
     onInviteClick: () -> Unit = {},
     onJournalClick: (Client) -> Unit = {},
-    onDashboardClick: (Client) -> Unit = {},
-    viewModel: ClientsViewModel = viewModel()
+    onDashboardClick: (Client) -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val viewModel: ClientsViewModel = viewModel(
+        factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                @Suppress("UNCHECKED_CAST")
+                return ClientsViewModel(context.applicationContext as android.app.Application) as T
+            }
+        }
+    )
     val clients by viewModel.filteredClients.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
@@ -56,7 +67,7 @@ fun ClientsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "My Clients",
+                        text = "Registered Users",
                         fontWeight = FontWeight.Bold
                     )
                 },

@@ -1,14 +1,18 @@
 package com.example.nus.viewmodel
 
+import android.app.Application
 import androidx.compose.runtime.mutableStateOf
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.nus.api.ApiClient
+import com.example.nus.data.PersistentUserManager
 import com.example.nus.model.RegisterRequest
 import kotlinx.coroutines.launch
 
-class RegisterViewModel : ViewModel() {
-    
+class RegisterViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val userManager = PersistentUserManager.getInstance(application)
+
     val email = mutableStateOf("")
     val password = mutableStateOf("")
     val firstName = mutableStateOf("")
@@ -68,6 +72,13 @@ class RegisterViewModel : ViewModel() {
                 println("Registration response: Code=${response.code()}, Success=${response.isSuccessful}")
                 
                 if (response.isSuccessful) {
+                    // 注册成功后，将用户添加到本地数据库
+                    userManager.addUser(
+                        firstName = firstName.value.trim(),
+                        lastName = lastName.value.trim(),
+                        email = email.value.trim()
+                    )
+
                     registerSuccess.value = true
                     onSuccess()
                 } else {
