@@ -10,7 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Dashboard
+
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
@@ -39,8 +39,7 @@ fun ClientsScreen(
     counsellorId: String = "",
     onBackClick: () -> Unit = {},
     onInviteClick: () -> Unit = {},
-    onJournalClick: (Client) -> Unit = {},          // ✅ typed callback
-    onDashboardClick: (Client) -> Unit = {}         // ✅ typed callback
+    onJournalClick: (Client) -> Unit = {}
 ) {
     val context = LocalContext.current
     val viewModel: ClientsViewModel = viewModel(
@@ -118,8 +117,7 @@ fun ClientsScreen(
                         items(clients) { client ->
                             ClientCard(
                                 client = client,
-                                onJournalClick = { onJournalClick(client) },     // ✅ use callback
-                                onDashboardClick = { onDashboardClick(client) }  // ✅ use callback
+                                onJournalClick = { onJournalClick(client) }
                             )
                         }
                     }
@@ -160,8 +158,7 @@ private fun EmptyClientsState(onInviteClick: () -> Unit) {
 @Composable
 private fun ClientCard(
     client: Client,
-    onJournalClick: () -> Unit,
-    onDashboardClick: () -> Unit
+    onJournalClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -208,20 +205,13 @@ private fun ClientCard(
                 }
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            OutlinedButton(
+                onClick = onJournalClick,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                OutlinedButton(onClick = onJournalClick, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Default.MenuBook, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Journal")
-                }
-                OutlinedButton(onClick = onDashboardClick, modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Default.Dashboard, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Dashboard")
-                }
+                Icon(Icons.Default.MenuBook, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(4.dp))
+                Text("Journal")
             }
         }
     }

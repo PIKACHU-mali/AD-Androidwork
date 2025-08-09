@@ -241,8 +241,7 @@ fun AppNavigation() {
                     onJournalClick = { client ->
                         // Navigate with this navController (do NOT create a new one inside ClientsScreen)
                         navController.navigate(Screen.JournalForClient.createRoute(client.clientId))
-                    },
-                    onDashboardClick = { client -> /* TODO */ }
+                    }
                 )
             }
 
@@ -308,18 +307,6 @@ fun AppNavigation() {
             }
 
 // From Clients list to a client's journal
-
-            composable(Screen.Clients.route) {
-                ClientsScreen(
-                    counsellorId = userSessionViewModel.userId.value,
-                    onBackClick = { navController.navigate(Screen.CounsellorHome.route) },
-                    onInviteClick = { /* TODO */ },
-                    onJournalClick = { client ->
-                        navController.navigate(Screen.JournalForClient.createRoute(client.clientId))
-                    },
-                    onDashboardClick = { /* TODO */ }
-                )
-            }
 
 // route for client journal list
             composable(
