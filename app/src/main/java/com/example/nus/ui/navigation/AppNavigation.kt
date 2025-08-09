@@ -14,6 +14,7 @@ import androidx.compose.material.icons.outlined.Face
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -25,6 +26,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -331,7 +333,24 @@ fun AppNavigation() {
                     navController = navController
                 )
             }
+            composable(
+                route = Screen.JournalDetail.route,
+                arguments = listOf(navArgument("entryIndex") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val index = backStackEntry.arguments?.getInt("entryIndex") ?: -1
+                val list = journalViewModel.journalList
 
+                if (index in list.indices) {
+                    JournalDetailScreen(entry = list[index])
+                } else {
+                    // Defensive: avoid crash if index is bad
+                    Text(
+                        "Entry not found",
+                        modifier = Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
 
 
 
