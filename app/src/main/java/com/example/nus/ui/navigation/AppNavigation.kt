@@ -338,11 +338,26 @@ fun AppNavigation() {
             }
             // --- Journal list ---
             composable(Screen.Journal.route) {
-                // If you want to auto-load from API per user, call journalViewModel.load(userSessionViewModel.userId.value ?: "") here
-                // LaunchedEffect(Unit) { journalViewModel.load(userSessionViewModel.userId.value ?: "") }
+                // 强制加载测试数据以展示完整功能
+                LaunchedEffect(Unit) {
+                    journalViewModel.loadTestDataForDemo()
+                    // 同时加载用户的真实lifestyle数据
+                    val currentUserId = userSessionViewModel.userId.value
+                    if (currentUserId.isNotEmpty()) {
+                        lifestyleViewModel.setUserId(currentUserId)
+                        lifestyleViewModel.loadAllHabitsEntries(
+                            onSuccess = {
+                                println("Successfully loaded lifestyle entries for Journal page")
+                            },
+                            onError = { error ->
+                                println("Failed to load lifestyle entries: $error")
+                            }
+                        )
+                    }
+                }
 
                 com.example.nus.ui.screens.JournalScreen(
-                    journalList = journalViewModel.journalList,
+                    journalViewModel = journalViewModel,
                     navController = navController
                 )
             }
@@ -380,6 +395,7 @@ fun AppNavigation() {
 
                     JournalDetailScreen(
                         viewModel = journalDetailViewModel,
+                        lifestyleViewModel = lifestyleViewModel,
                         onRetry = {
                             // 如果需要重试，可以重新设置数据
                             journalDetailViewModel.setJournalEntry(list[index])
